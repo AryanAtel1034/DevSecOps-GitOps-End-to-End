@@ -39,20 +39,22 @@ jobs:
       - name: OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         continue-on-error: true
+        env:
+           JAVA_HOME: /opt/jdk
         with:
-          project: Voting_app
-          path: .
-          format: HTML
-          out: reports
-          args: >
-            --failOnCVSS 7
-
+            project: Voting_app
+            path: .
+            format: HTML
+            out: reports
+            args: >
+              --failOnCVSS 7
+              --enableRetired
+  
       - name: Upload OWASP Report
         uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: OWASP-dependency-report
-          path: reports
+            name: OWASP-dependency-report
+            path: reports/dependency-check-report.html
 
       - uses: gitleaks/gitleaks-action@v2
         continue-on-error: true
