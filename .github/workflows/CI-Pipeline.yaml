@@ -29,12 +29,15 @@ jobs:
           - name: result
             dockerfile: result/Dockerfile
             context: result
+            app: result-tourly
           - name: vote
             dockerfile: vote/Dockerfile
-            context: backvoteend
+            context: vote
+            app: vote-tourly
           - name: worker
             dockerfile: worker/Dockerfile
             context: worker
+            app: vote-tourly
 
     if: |
       (github.event_name == 'workflow_dispatch' && inputs.build_image == true) ||
@@ -60,17 +63,17 @@ jobs:
         run: |
           docker build \
             -f ${{ matrix.service.dockerfile }} \
-            -t ${{ vars.DOCKER_USERNAME }}/${{ env.APP }}-${{ matrix.service.name }}:${IMAGE_TAG} \
+            -t ${{ vars.DOCKER_USERNAME }}/${{ matrix.APP }}-${{ matrix.service.name }}:${IMAGE_TAG} \
             ${{ matrix.service.context }}
 
       - name: Trivy Image Scan
         uses: aquasecurity/trivy-action@0.28.0
         continue-on-error: true
         with:
-          image-ref: ${{ vars.DOCKER_USERNAME }}/${{ env.APP }}-${{ matrix.service.name }}:${IMAGE_TAG}
+          image-ref: ${{ vars.DOCKER_USERNAME }}/${{ matrix.APP }}-${{ matrix.service.name }}:${IMAGE_TAG}
           severity: CRITICAL,HIGH
 
       - name: Push Image
         run: |
           docker push \
-            ${{ vars.DOCKER_USERNAME }}/${{ env.APP }}-${{ matrix.service.name }}:${IMAGE_TAG}
+            ${{ vars.DOCKER_USERNAME }}/${{ matrix.APP }}-${{ matrix.service.name }}:${IMAGE_TAG}
