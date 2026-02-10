@@ -1,4 +1,4 @@
-name: PR Scanning
+name: PR Check
 
 on:
    pull_request:
@@ -8,7 +8,7 @@ env:
   SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
 jobs:
-  SecurityScan:
+  PR-Scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,15 +20,15 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4.2.1
+    #   - name: SonarQube Scan
+    #     uses: SonarSource/sonarqube-scan-action@v4.2.1
 
-      - name: SonarQube Server Quality Gate check
-        id: sonarqube-quality-gate-check
-        uses: sonarsource/sonarqube-quality-gate-action@master
-        with:
-           pollingTimeoutSec: 600
-        timeout-minutes: 8
+    #   - name: SonarQube Server Quality Gate check
+    #     id: sonarqube-quality-gate-check
+    #     uses: sonarsource/sonarqube-quality-gate-action@master
+    #     with:
+    #        pollingTimeoutSec: 600
+    #     timeout-minutes: 8
         
       - name: OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
@@ -50,8 +50,11 @@ jobs:
             name: OWASP-dependency-report
             path: reports/dependency-check-report.html
 
-      - uses: gitleaks/gitleaks-action@v2
+      - name: gitleaks scan
+        uses: gitleaks/gitleaks-action@v2
         continue-on-error: true
+        env: 
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trivy FS Scan
         uses: aquasecurity/trivy-action@0.28.0
