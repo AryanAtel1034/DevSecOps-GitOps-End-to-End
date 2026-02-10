@@ -21,7 +21,7 @@ env:
 # -------------------- BUILD --------------------
 jobs:
   build:
-    name: Build (${{ matrix.service.name }})
+    name: Build ${{ matrix.service.name }} Image
     runs-on: ubuntu-latest
     if: |
       (github.event_name == 'workflow_dispatch' && inputs.build_image == true) ||
@@ -75,7 +75,7 @@ jobs:
 
 # -------------------- SCAN --------------------
   scan:
-    name: Scan (${{ matrix.service.name }})
+    name: Scan ${{ matrix.service.name }} Image
     runs-on: ubuntu-latest
     needs: build
 
@@ -104,7 +104,7 @@ jobs:
 
 # -------------------- PUSH --------------------
   push:
-    name: Push (${{ matrix.service.name }})
+    name: Push ${{ matrix.service.name }} Image
     runs-on: ubuntu-latest
     needs: scan
 
@@ -131,4 +131,4 @@ jobs:
       - name: Push Image
         run: |
           docker push \
-            ${{ vars.DOCKER_USERNAME }}/${{ matrix.APP }}-${{ matrix.service.name }}:${{ github.run_number }}
+            ${{ vars.DOCKER_USERNAME }}/${{ matrix.APP }}${{ matrix.service.name }}:${{ github.run_number }}
