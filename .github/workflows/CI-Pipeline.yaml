@@ -22,6 +22,7 @@ env:
 
 jobs:
   Build-and-Push:
+    name: Build and Push Images
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -29,15 +30,15 @@ jobs:
           - name: result
             dockerfile: result/Dockerfile
             context: result
-            app: result-tourly
+            app: resultImage
           - name: vote
             dockerfile: vote/Dockerfile
             context: vote
-            app: vote-tourly
+            app: voteImage
           - name: worker
             dockerfile: worker/Dockerfile
             context: worker
-            app: vote-tourly
+            app: voteImage
 
     if: |
       (github.event_name == 'workflow_dispatch' && inputs.build_image == true) ||
