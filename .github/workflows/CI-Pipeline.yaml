@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       build_image:
-        description: "Build & push Docker image"
+        description: "Build & push Docker images"
         required: true
         type: boolean
         default: false
@@ -17,13 +17,16 @@ on:
 
 env:
   APP: tourly
-  INFRA_REPO: your-org/voting-infra
-  INFRA_BRANCH: main
 
+# -------------------- BUILD --------------------
 jobs:
-  Build-and-Push:
-    name: Build and Push Images
+  build:
+    name: Build (${{ matrix.service.name }})
     runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'workflow_dispatch' && inputs.build_image == true) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+
     strategy:
       matrix:
         service:
@@ -38,11 +41,7 @@ jobs:
           - name: worker
             dockerfile: worker/Dockerfile
             context: worker
-            app: voteImage
-
-    if: |
-      (github.event_name == 'workflow_dispatch' && inputs.build_image == true) ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+            app: workerImage
 
     steps:
       - uses: actions/checkout@v4
@@ -56,10 +55,6 @@ jobs:
           fi
           echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
 
-      - name: Docker Login
-        run: |
-          docker login -u "${{ vars.DOCKER_USERNAME }}" -p "${{ secrets.DOCKERHUB_PASS }}"
-
       - name: Docker Build
         run: |
           docker build \
@@ -67,14 +62,73 @@ jobs:
             -t ${{ vars.DOCKER_USERNAME }}/${{ matrix.APP }}${{ matrix.service.name }}:${IMAGE_TAG} \
             ${{ matrix.service.context }}
 
-      - name: Trivy Image Scan
+      - name: Save image as artifact
+        run: |
+          docker save \
+            ${{ vars.DOCKER_USERNAME }}/${{ matrix.APP }}${{ matrix.service.name }}:${IMAGE_TAG} \
+            | gzip > image.tar.gz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image-${{ matrix.service.name }}
+          path: image.tar.gz
+
+# -------------------- SCAN --------------------
+  scan:
+    name: Scan (${{ matrix.service.name }})
+    runs-on: ubuntu-latest
+    needs: build
+
+    strategy:
+      matrix:
+        service:
+          - name: result
+          - name: vote
+          - name: worker
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: image-${{ matrix.service.name }}
+
+      - name: Load image
+        run: |
+          gunzip -c image.tar.gz | docker load
+
+      - name: Trivy Scan
         uses: aquasecurity/trivy-action@0.28.0
         continue-on-error: true
         with:
-          image-ref: ${{ vars.DOCKER_USERNAME }}/${{ matrix.APP }}${{ matrix.service.name }}:${IMAGE_TAG}
+          image-ref: ${{ vars.DOCKER_USERNAME }}/${{ matrix.APP }}-${{ matrix.service.name }}:${{ github.run_number }}
           severity: CRITICAL,HIGH
+
+# -------------------- PUSH --------------------
+  push:
+    name: Push (${{ matrix.service.name }})
+    runs-on: ubuntu-latest
+    needs: scan
+
+    strategy:
+      matrix:
+        service:
+          - name: result
+          - name: vote
+          - name: worker
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: image-${{ matrix.service.name }}
+
+      - name: Load image
+        run: |
+          gunzip -c image.tar.gz | docker load
+
+      - name: Docker Login
+        run: |
+          docker login -u "${{ vars.DOCKER_USERNAME }}" -p "${{ secrets.DOCKERHUB_PASS }}"
 
       - name: Push Image
         run: |
           docker push \
-            ${{ vars.DOCKER_USERNAME }}/${{ matrix.APP }}${{ matrix.service.name }}:${IMAGE_TAG}
+            ${{ vars.DOCKER_USERNAME }}/${{ matrix.APP }}-${{ matrix.service.name }}:${{ github.run_number }}
