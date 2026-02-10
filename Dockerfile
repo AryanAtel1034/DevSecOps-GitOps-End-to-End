@@ -6,3 +6,4 @@ COPY . /usr/share/nginx/html
 # Nginx serves on 80 by default
 EXPOSE 80
 
+#testing comment
