@@ -47,12 +47,12 @@ jobs:
           args: >
             --failOnCVSS 7
 
-      - name: Upload artifacts
+      - name: Upload OWASP Report
         uses: actions/upload-artifact@v4
-        continue-on-error: true
+        if: always()
         with:
-            name: OWASP-dependecy-report
-            path: './reports/dependency-check-report.html'
+          name: OWASP-dependency-report
+          path: reports
 
       - uses: gitleaks/gitleaks-action@v2
         continue-on-error: true
