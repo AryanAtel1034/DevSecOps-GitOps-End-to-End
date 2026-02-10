@@ -47,6 +47,13 @@ jobs:
           args: >
             --failOnCVSS 7
 
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+            name: OWASP-dependecy-report
+            path: './reports/dependency-check-report.html'
+
       - uses: gitleaks/gitleaks-action@v2
         continue-on-error: true
 
@@ -55,7 +62,17 @@ jobs:
         continue-on-error: true
         with:
           scan-type: fs
+          ignore-unfixed: true
           severity: CRITICAL
+          format: template
+          template: "@/contrib/html.tpl"
+          output: trivy-fs-report.html
+
+      - name: Upload Trivy FS Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-fs-report
+          path: trivy-fs-report.html
 
   build-and-push:
     runs-on: ubuntu-latest
