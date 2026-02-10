@@ -87,7 +87,7 @@
   
         - name: Docker Build
           run: |
-            docker build -t ${{ env.APP }} ./${{ env.APP }}
+            docker build -t .
   
         - name: Trivy Image Scan
           uses: aquasecurity/trivy-action@0.28.0
