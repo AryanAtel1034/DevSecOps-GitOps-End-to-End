@@ -50,8 +50,11 @@ jobs:
             name: OWASP-dependency-report
             path: reports/dependency-check-report.html
 
-      - uses: gitleaks/gitleaks-action@v2
+      - name: gitleaks scan
+        uses: gitleaks/gitleaks-action@v2
         continue-on-error: true
+        env: 
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trivy FS Scan
         uses: aquasecurity/trivy-action@0.28.0
