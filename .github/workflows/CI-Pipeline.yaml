@@ -59,13 +59,13 @@ jobs:
         run: |
           docker build \
             -f ${{ matrix.service.dockerfile }} \
-            -t ${{ vars.DOCKER_USERNAME }}/${{ matrix.APP }}${{ matrix.service.name }}:${IMAGE_TAG} \
+            -t ${{ vars.DOCKER_USERNAME }}/${{ env.APP }}${{ matrix.service.name }}:${IMAGE_TAG} \
             ${{ matrix.service.context }}
 
       - name: Save image as artifact
         run: |
           docker save \
-            ${{ vars.DOCKER_USERNAME }}/${{ matrix.APP }}${{ matrix.service.name }}:${IMAGE_TAG} \
+            ${{ vars.DOCKER_USERNAME }}/${{ env.APP }}${{ matrix.service.name }}:${IMAGE_TAG} \
             | gzip > image.tar.gz
 
       - uses: actions/upload-artifact@v4
@@ -95,11 +95,20 @@ jobs:
         run: |
           gunzip -c image.tar.gz | docker load
 
+      - name: Set image tag
+        run: |
+          if [ -n "${{ inputs.image_tag }}" ]; then
+            TAG=${{ inputs.image_tag }}
+          else
+            TAG=v${{ github.run_number }}
+          fi
+          echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
+
       - name: Trivy Scan
         uses: aquasecurity/trivy-action@0.28.0
         continue-on-error: true
         with:
-          image-ref: ${{ vars.DOCKER_USERNAME }}/${{ matrix.APP }}-${{ matrix.service.name }}:${{ github.run_number }}
+          image-ref: ${{ vars.DOCKER_USERNAME }}/${{ env.APP }}${{ matrix.service.name }}:${IMAGE_TAG}
           severity: CRITICAL,HIGH
 
 # -------------------- PUSH --------------------
@@ -120,9 +129,29 @@ jobs:
         with:
           name: image-${{ matrix.service.name }}
 
+      - name: Set image tag
+        run: |
+          if [ -n "${{ inputs.image_tag }}" ]; then
+            TAG=${{ inputs.image_tag }}
+          else
+            TAG=v${{ github.run_number }}
+          fi
+          echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
+
       - name: Load image
         run: |
           gunzip -c image.tar.gz | docker load
+
+      - name: Retag image for push
+        run: |
+          # Find the loaded image by repository pattern and retag it
+          OLD_TAG=$(docker images --format "{{.Repository}}:{{.Tag}}" | grep "${{ vars.DOCKER_USERNAME }}/${{ env.APP }}-${{ matrix.service.name }}" | head -n 1)
+          if [ -n "$OLD_TAG" ]; then
+            docker tag "$OLD_TAG" ${{ vars.DOCKER_USERNAME }}/${{ env.APP }}${{ matrix.service.name }}:${IMAGE_TAG}
+          else
+            echo "Warning: Could not find image to retag"
+            docker images
+          fi
 
       - name: Docker Login
         run: |
@@ -131,4 +160,4 @@ jobs:
       - name: Push Image
         run: |
           docker push \
-            ${{ vars.DOCKER_USERNAME }}/${{ matrix.APP }}${{ matrix.service.name }}:${{ github.run_number }}
+            ${{ vars.DOCKER_USERNAME }}/${{ env.APP }}${{ matrix.service.name }}:${IMAGE_TAG}
