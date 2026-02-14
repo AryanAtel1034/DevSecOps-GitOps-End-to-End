@@ -57,10 +57,13 @@ jobs:
 
       - name: Docker Build
         run: |
-          docker build \
+          docker buildx create --use
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
             -f ${{ matrix.service.dockerfile }} \
             -t ${{ vars.DOCKER_USERNAME }}/${{ env.APP }}${{ matrix.service.name }}:${IMAGE_TAG} \
-            ${{ matrix.service.context }}
+            ${{ matrix.service.context }} \
+            --push
 
       - name: Save image as artifact
         run: |
