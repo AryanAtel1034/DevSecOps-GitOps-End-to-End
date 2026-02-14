@@ -164,23 +164,16 @@ jobs:
 
 # -------------------- DEPLOY --------------------
   deploy:
-    name: Deploy ${{ matrix.service.name }} Tag to Infra
+    name: Deploy New ${{ matrix.service.name }} Image Tags 
     runs-on: ubuntu-latest
     needs: push
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    strategy:
-      matrix:
-        service:
-          - name: result
-          - name: vote
-          - name: worker
 
     steps:
       - name: Checkout Infra Repo
         uses: actions/checkout@v4
         with:
-          repository: AryanAtel1034/DevSecOps-GitOps-End-to-End-Infra   # replace with your infra repo
+          repository: AryanAtel1034/DevSecOps-GitOps-End-to-End-Infra
           token: ${{ secrets.CD_TOKEN }}
           path: .
 
@@ -198,17 +191,21 @@ jobs:
           sudo wget https://github.com/mikefarah/yq/releases/download/v4.42.1/yq_linux_amd64 -O /usr/bin/yq
           sudo chmod +x /usr/bin/yq
 
-      - name: Update Kustomize image tag
+      - name: Update all Kustomize image tags
         run: |
-          KUSTOMIZE_FILE="GitOps/env/dev/${{ matrix.service.name }}/kustomization.yaml"
-          echo "Updating $KUSTOMIZE_FILE with tag $IMAGE_TAG"
-          yq e -i ".images[] |= (select(.name == \"aryanatel/tourly${{ matrix.service.name }}\") | .newTag = \"$IMAGE_TAG\")" $KUSTOMIZE_FILE
+          services=("result" "vote" "worker")
+          for svc in "${services[@]}"; do
+            KUSTOMIZE_FILE="GitOps/env/dev/$svc/kustomization.yaml"
+            echo "Updating $KUSTOMIZE_FILE with tag $IMAGE_TAG"
+            yq e -i ".images[] |= (select(.name == \"aryanatel/tourly$svc\") | .newTag = \"$IMAGE_TAG\")" $KUSTOMIZE_FILE
+          done
 
-      - name: Commit & Push changes
+      - name: Commit & Push changes safely
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add .
-          git commit -m "Update ${{ matrix.service.name }} image tag to $IMAGE_TAG [ci skip]" || echo "No changes to commit"
+          git commit -m "Update all image tags to $IMAGE_TAG [ci skip]" || echo "No changes to commit"
+          git fetch origin main
+          git rebase origin/main || git rebase --abort
           git push origin main
-
