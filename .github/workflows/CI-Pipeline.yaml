@@ -161,3 +161,54 @@ jobs:
         run: |
           docker push \
             ${{ vars.DOCKER_USERNAME }}/${{ env.APP }}${{ matrix.service.name }}:${IMAGE_TAG}
+
+# -------------------- DEPLOY --------------------
+  deploy:
+    name: Deploy ${{ matrix.service.name }} Tag to Infra
+    runs-on: ubuntu-latest
+    needs: push
+
+    strategy:
+      matrix:
+        service:
+          - name: result
+          - name: vote
+          - name: worker
+
+    steps:
+      - name: Checkout Infra Repo
+        uses: actions/checkout@v4
+        with:
+          repository: AryanAtel1034/DevSecOps-GitOps-End-to-End-Infra   # replace with your infra repo
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: .
+
+      - name: Set image tag
+        run: |
+          if [ -n "${{ inputs.image_tag }}" ]; then
+            TAG=${{ inputs.image_tag }}
+          else
+            TAG=v${{ github.run_number }}
+          fi
+          echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Install yq
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/download/v4.42.1/yq_linux_amd64 -O /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+
+      - name: Update Kustomize image tag
+        run: |
+          KUSTOMIZE_FILE="GitOps/env/dev/${{ matrix.service.name }}/kustomization.yaml"
+          echo "Updating $KUSTOMIZE_FILE with tag $IMAGE_TAG"
+          yq e -i ".images[] |= (select(.name == \"aryanatel/tourly${{ matrix.service.name }}\") | .newTag = \"$IMAGE_TAG\")" $KUSTOMIZE_FILE
+
+      - name: Commit & Push changes
+        run: |
+          cd infra
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          git commit -m "Update ${{ matrix.service.name }} image tag to $IMAGE_TAG [ci skip]" || echo "No changes to commit"
+          git push origin main
+
