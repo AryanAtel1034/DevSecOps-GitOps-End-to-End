@@ -2,6 +2,8 @@
 
 # [K8s Infra Repository Link for the CD Part](https://github.com/AryanAtel1034/DevSecOps-GitOps-End-to-End-Infra)
 
+- **Repository Strategy:** Separated application and infrastructure repositories to enable GitOps-based deployments and streamlined CI/CD workflows. automate the security scan and build project.
+
 # [Real-Time End-to-End Microservice Base Voting Application Deployment Automation:](https://github.com/AryanAtel1034/DevSecOps-GitOps-End-to-End)
 
 - **A three-tier based micro-service based application deatils**:
@@ -44,8 +46,12 @@ kubectl port-forward -n voting-app service/result 5001:5001 --address=0.0.0.0 &
 ---
 # Github Actions CI
 <!-- <img width="8036" height="3705" alt="DevSecOps drawio" src="https://github.com/user-attachments/assets/3c30dff3-d2bf-4ba4-9b0c-25b256c92249" /> -->
+- **WorkFlow Dispactcher:** Implemented a manual workflow_dispatch trigger to build Docker images from feature branches without enabling automatic deployment. 
 <img width="1440" height="770" alt="Screenshot 2026-02-15 at 3 04 01 PM" src="https://github.com/user-attachments/assets/3ea46859-9f40-42c2-9014-7ff14476316d" />
 <img width="1439" height="778" alt="Screenshot 2026-02-15 at 3 04 30 PM" src="https://github.com/user-attachments/assets/a36032fe-5818-4da5-84b5-fccf109bebb0" />
+
+- **PR-Check:** Implemented PR validation checks and branch protection rules to prevent merging of non-compliant or failing feature branches into the main branch. 
+
  <img width="1440" height="650" alt="Screenshot 2026-02-15 at 3 05 18 PM" src="https://github.com/user-attachments/assets/7bc367a0-d40c-4eb0-8968-203475487cc2" /> 
 <img width="1440" height="778" alt="Screenshot 2026-02-15 at 3 04 49 PM" src="https://github.com/user-attachments/assets/e0887046-9b91-4398-89e3-24e87a9a188e" />
 
