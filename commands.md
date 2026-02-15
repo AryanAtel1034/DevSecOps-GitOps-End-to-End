@@ -21,23 +21,51 @@ helm install argocd argo/argo-cd \
 ```
 kubectl get pods -n argocd
 ```
-# Port-forward the Argo CD server to localhost:8080
+### Port-forward the Argo CD server to localhost:8080
 ```
 kubectl port-forward service/argocd-server -n argocd 8080:443
 ```
-# Get the initial admin password for Argo CD (decoding from base64)
+### Get the initial admin password for Argo CD (decoding from base64)
 ```
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
-# List Helm releases in the argocd namespace
+### List Helm releases in the argocd namespace
 ```
 helm list -n argocd
 ```
-# Uninstall the Argo CD Helm release
+### Uninstall the Argo CD Helm release
 ```
 helm uninstall argocd -n argocd
 ```
-# Delete the argocd namespace and all resources inside it
+### Delete the argocd namespace and all resources inside it
 ```
 kubectl delete namespace argocd
+```
+
+
+## Monitoring Command
+
+###  Add the Prometheus Community Helm repo (includes Grafana, node-exporter, etc.) 
+```
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+```
+
+###  Install kube-prometheus-stack in a dedicated namespace (Prometheus + Grafana + Alertmanager) 
+```
+helm install monitoring prometheus-community/kube-prometheus-stack \
+  --namespace monitoring \
+  --create-namespace
+```
+
+### Expose Grafana locally on port 3000 (default login: admin / prom-operator) 
+```
+kubectl port-forward svc/monitoring-grafana 3000:80 -n monitoring
+```
+
+###  Optional: disable host root FS mount for node-exporter if it causes permission issues (e.g. on OpenShift/restricted PSP)
+``` 
+helm upgrade monitoring prometheus-community/kube-prometheus-stack \
+  -n monitoring \
+  --set prometheus-node-exporter.hostRootFsMount.enabled=false
 ```
