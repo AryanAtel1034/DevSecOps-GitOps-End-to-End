@@ -1,4 +1,7 @@
 # [Project Setup](https://github.com/AryanAtel1034/DevSecOps-GitOps-End-to-End/blob/main/readme.md)
+
+# [K8s Infra Repository Link for the CD Part](https://github.com/AryanAtel1034/DevSecOps-GitOps-End-to-End-Infra)
+
 # [Real-Time End-to-End Microservice Base Voting Application Deployment Automation:](https://github.com/AryanAtel1034/DevSecOps-GitOps-End-to-End)
 
 - **A three-tier based micro-service based application deatils**:
