@@ -9,7 +9,9 @@
     - A Node.js web app which shows the **results** of the voting in real time
 
 ## DevOps CI/CD Flow and Tools
-![image](https://github.com/user-attachments/assets/edaf5944-e0d2-4e53-b157-af06f3e57fb0)
+
+<img width="8036" height="3705" alt="DevSecOps drawio" src="https://github.com/user-attachments/assets/9e715f96-a018-42bd-a8d7-245267d86978" />
+
 - **GitHub Actions:** For continuous Integration (CI) I have used the github actions to automate the security scan and build project.
 - **OWASP:** For vulnerabilities scanning in project dependencies (e.g., libraries, frameworks, or packages) to minimize risks associated with third-party libraries and ensure a secure software supply chain.
 - **Trivy:** For ensuring continuous security with Trivy helps in scanning like Scanning File Systems, Container Image Scanning and Vulnerability Scanning in Code Repositories etc.
@@ -33,10 +35,17 @@
 kubectl port-forward -n voting-app service/vote 5000:5000 --address=0.0.0.0 &
 kubectl port-forward -n voting-app service/result 5001:5001 --address=0.0.0.0 &
 ```
+
+
+
 ---
 # Github Actions CI
-![image](https://github.com/user-attachments/assets/3e4633ad-c90e-49c8-ab7d-dc8dd76f9164)
-![image](https://github.com/user-attachments/assets/3f6a12bc-903f-4648-8f97-e08b9b5ac8df)
+<!-- <img width="8036" height="3705" alt="DevSecOps drawio" src="https://github.com/user-attachments/assets/3c30dff3-d2bf-4ba4-9b0c-25b256c92249" /> -->
+<img width="1440" height="770" alt="Screenshot 2026-02-15 at 3 04 01 PM" src="https://github.com/user-attachments/assets/3ea46859-9f40-42c2-9014-7ff14476316d" />
+<img width="1439" height="778" alt="Screenshot 2026-02-15 at 3 04 30 PM" src="https://github.com/user-attachments/assets/a36032fe-5818-4da5-84b5-fccf109bebb0" />
+ <img width="1440" height="650" alt="Screenshot 2026-02-15 at 3 05 18 PM" src="https://github.com/user-attachments/assets/7bc367a0-d40c-4eb0-8968-203475487cc2" /> 
+<img width="1440" height="778" alt="Screenshot 2026-02-15 at 3 04 49 PM" src="https://github.com/user-attachments/assets/e0887046-9b91-4398-89e3-24e87a9a188e" />
+
 ---
 # K8s Dashboard
 ![image](https://github.com/user-attachments/assets/bac8960e-fc77-4cc4-a850-910dd0783c19)
@@ -47,7 +56,8 @@ kubectl port-forward -n voting-app service/result 5001:5001 --address=0.0.0.0 &
 ![image](https://github.com/user-attachments/assets/66e48984-1894-4726-b96a-2f76fccd812e)
 ---
 # Grafana
-![image](https://github.com/user-attachments/assets/de743eea-ed16-4e03-9b28-f13194384d7e)
+<img width="1440" height="781" alt="Screenshot 2026-02-14 at 10 09 07 PM" src="https://github.com/user-attachments/assets/11bbeacd-a9a2-4c1e-9d3a-67578b96842a" />
+
 
 # SonarQube
 <img width="1892" height="909" alt="image" src="https://github.com/user-attachments/assets/695f173d-4935-44b8-867f-efb3e5145e70" />
