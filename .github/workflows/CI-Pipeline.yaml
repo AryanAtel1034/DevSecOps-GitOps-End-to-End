@@ -55,11 +55,19 @@ jobs:
           fi
           echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
 
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+            username: ${{ vars.DOCKER_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_PASS }}
+
       - name: Docker Image  Build
         run: |
-           docker build \
+           docker buildx build \
+            --platform linux/amd64,linux/arm64 \
             -f ${{ matrix.service.dockerfile }} \
             -t ${{ vars.DOCKER_USERNAME }}/${{ env.APP }}${{ matrix.service.name }}:${IMAGE_TAG} \
+            --load \
             ${{ matrix.service.context }}
 
       - name: Save image as artifact

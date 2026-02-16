@@ -1,32 +1,32 @@
-# base defines a base stage that uses the official python runtime base image
-FROM python:3.11-slim AS base
+# Use stable base with multi-arch support
+FROM --platform=$BUILDPLATFORM python:3.11-bullseye AS base
 
-# Add curl for healthcheck
+# Add curl for healthcheck safely
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl && \
     rm -rf /var/lib/apt/lists/*
 
-# Set the application directory
+# Set working directory
 WORKDIR /usr/local/app
 
-# Install our requirements.txt
+# Install Python dependencies
 COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# dev defines a stage for development, where it'll watch for filesystem changes
+# -------------------- Development Stage --------------------
 FROM base AS dev
 RUN pip install watchdog
 ENV FLASK_ENV=development
 CMD ["python", "app.py"]
 
-# final defines the stage that will bundle the application for production
+# -------------------- Production Stage --------------------
 FROM base AS final
 
-# Copy our code from the current folder to the working directory inside the container
+# Copy application code
 COPY . .
 
-# Make port 80 available for links and/or publish
+# Expose port 80
 EXPOSE 80
 
-# Define our command to be run when launching the container
+# Run gunicorn with optimized settings
 CMD ["gunicorn", "app:app", "-b", "0.0.0.0:80", "--log-file", "-", "--access-logfile", "-", "--workers", "4", "--keep-alive", "0"]

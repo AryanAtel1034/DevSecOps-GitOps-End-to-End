@@ -1,28 +1,39 @@
-# because of dotnet, we always build on amd64, and target platforms in cli
-# dotnet doesn't support QEMU for building or running. 
-# (errors common in arm/v7 32bit) https://github.com/dotnet/dotnet-docker/issues/1537
-# https://hub.docker.com/_/microsoft-dotnet
-# hadolint ignore=DL3029
-# to build for a different platform than your host, use --platform=<platform>
-# for example, if you were on Intel (amd64) and wanted to build for ARM, you would use:
-# docker buildx build --platform "linux/arm64/v8" .
+# ----------------------------------------------------------
+# .NET multi-platform build notes
+# ----------------------------------------------------------
+# Because of .NET, we always build on amd64 and target
+# platforms explicitly. QEMU for ARM is not supported.
+# For more info: 
+# https://github.com/dotnet/dotnet-docker/issues/1537
+# ----------------------------------------------------------
 
-# build compiles the program for the builder's local platform
+# Build stage: compile for the target platform
 FROM --platform=${BUILDPLATFORM} mcr.microsoft.com/dotnet/sdk:7.0 AS build
 ARG TARGETPLATFORM
 ARG TARGETARCH
 ARG BUILDPLATFORM
+
+# Print build info
 RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
 
 WORKDIR /source
+
+# Copy project file and restore dependencies
 COPY *.csproj .
 RUN dotnet restore -a $TARGETARCH
 
+# Copy all source and publish
 COPY . .
-RUN dotnet publish -c release -o /app -a $TARGETARCH --self-contained false --no-restore
+RUN dotnet publish -c Release -o /app -a $TARGETARCH --self-contained false --no-restore
 
-# app image
-FROM mcr.microsoft.com/dotnet/runtime:7.0
+# ----------------------------------------------------------
+# Runtime stage: minimal image
+# ----------------------------------------------------------
+FROM mcr.microsoft.com/dotnet/runtime:7.0 AS final
 WORKDIR /app
+
+# Copy published app from build stage
 COPY --from=build /app .
+
+# Set entrypoint
 ENTRYPOINT ["dotnet", "Worker.dll"]
