@@ -62,7 +62,8 @@ kubectl port-forward -n voting-app service/result 5001:5001 --address=0.0.0.0 &
 
 ---
 # ArgoCD
-![image](https://github.com/user-attachments/assets/66e48984-1894-4726-b96a-2f76fccd812e)
+<img width="1440" height="859" alt="Screenshot 2026-02-16 at 2 17 17 PM" src="https://github.com/user-attachments/assets/1cac6e8b-c40b-428c-a472-3583cda74a32" />
+
 ---
 # Grafana
 <img width="1440" height="781" alt="Screenshot 2026-02-14 at 10 09 07 PM" src="https://github.com/user-attachments/assets/11bbeacd-a9a2-4c1e-9d3a-67578b96842a" />
